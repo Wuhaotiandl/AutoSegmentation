@@ -11,7 +11,9 @@ from skimage.measure import regionprops
 import cv2
 import os
 import glob
-
+"""
+    合并测试
+"""
 def validate(dcm_path, mask_path, h5_path):
     segment_number = 700
     dcm_files = np.load(dcm_path)
