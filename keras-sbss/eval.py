@@ -11,7 +11,7 @@ from skimage.measure import regionprops
 import cv2
 
 """
-    测试下
+    测试下  
 """
 
 def validate(json_path, h5_path, data_path, mask_path=None):
