@@ -8,7 +8,8 @@ import h5py
 from keras.utils import np_utils
 import numpy as np
 """
-    该文件的训练数据从h5里面提取
+    该文件的训练数据从h5里面提取 
+    心脏的数据训练
 """
 
 def train(data_path, model_save_path, model_json_save_path):
