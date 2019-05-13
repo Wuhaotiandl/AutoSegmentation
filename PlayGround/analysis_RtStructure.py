@@ -5,6 +5,8 @@ import pydicom
 import re
 import sys
 from skimage import measure
+from core.shelper import *
+import matplotlib.pyplot as plt
 
 # 查找roi的下标
 def find_roi_id(rois, roi_pattern):
@@ -39,12 +41,19 @@ def read_data_from_dicom(rs_file, roi_pattern, spacing,masks, start_point):
                 contour_data = contour.ContourData
                 if len(contour_data) < 9:
                     return masks
+                # 225 ， 3
                 contour_data = np.array(contour_data).reshape(-1, 3)
                 X = (np.round((contour_data[:, 0] - start_point[0]) / spacing[2]).astype(np.int))
                 Y = (np.round((contour_data[:, 1] - start_point[1]) / spacing[1]).astype(np.int))
+                # 对于每个contour来说，它的Z轴坐标值都是一样的，代表该张CT在Z轴的坐标值
                 z = (np.round((contour_data[0, 2] - start_point[2]) / spacing[0]).astype(np.int))
+
                 V_poly = np.stack([Y, X], axis=1)
+
+                border = draw_coords_img(np.zeros((512, 512)), list(V_poly))
+                # 由ShowImage的图像可以看出，grid_points_in_poly的作用在于，它可以将图像根据轮廓信息填充
                 masks[z, :, :] = measure.grid_points_in_poly([512, 512], V_poly)
+                ShowImage(1, border, masks[z,:,:])
                 count = count +1
         else:
             print('no this organ')
