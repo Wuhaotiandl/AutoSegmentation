@@ -5,7 +5,9 @@ import logging
 from model import sbss_net
 from keras.utils import np_utils
 import h5py
-
+"""
+    直肠提取数据
+"""
 
 def main(seg_path, img_path, n_segments, train_path, val_path):
     logger = logging.getLogger(__name__)
