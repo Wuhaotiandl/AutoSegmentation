@@ -93,13 +93,14 @@ def validate(json_path, h5_path, data_path, mask_path=None):
 
             ShowImage(3, slice_, cut_label, whiteboard_region_2, whiteboard_region,  whiteboard_region_after,
                       whiteboard_region_after_remove, FillHolesFinish, blurbinary_rel, last_finish, draw)
+            ShowImage(1, draw)
             # ShowImage(2, slice_, label_, draw)
             dice = 2 * np.sum(cut_label*last_finish)/(np.sum(last_finish) + np.sum(cut_label))
             _sum += dice
             print(dice)
         else:
             print("该行无预测")
-    print('平均dice系数为：',  str(_sum / data_nii.shape[0]))
+    # print('平均dice系数为：',  str(_sum / data_nii.shape[0]))
     a = 1
 
 # 结果dice 系数有点差异
@@ -109,6 +110,6 @@ json_path = r'G:\model-store\heart-model\segliver_model_3cnn_50ecrossentry_2000.
 h5_path = r'G:\model-store\heart-model\segliver_model_3cnn_50ecrossentry_2000.h5'
 # json_path = r'H:\Hospital_Data\heart\masks\segliver_model_3cnn_10ecrossentry_2000.json'
 # h5_path = r'H:\Hospital_Data\heart\masks\segliver_model_3cnn_10ecrossentry_2000.h5'
-dcm_path = r'G:\data\heart_data\val_data\ZHENG XIANG YUN\ct_data.npy'
-mask_path = r'G:\data\heart_data\val_data\ZHENG XIANG YUN\Heart.npy'
+dcm_path = r'G:\data\heart_data\val_data\YU SHAN SONG\ct_data.npy'
+mask_path = r'G:\data\heart_data\val_data\YU SHAN SONG\Heart.npy'
 validate(json_path, h5_path, dcm_path, mask_path)

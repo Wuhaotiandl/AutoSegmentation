@@ -275,6 +275,18 @@ def ResizeChannel(img_array):
     new_img_array = np.dstack((temp_img_array, img_array))
     return new_img_array
 
+def SuperpixelExtract_for_rectum(o_img, n_segments):
+    img = o_img
+    # 高斯去噪
+    PatchN = gaussian(img, sigma=0.5)
+    # 拓展通道
+    slice_colors = ResizeChannel(PatchN)
+    superpixel = slic(slice_colors, n_segments, compactness=5, sigma=1)
+    slice_entro = entropy(PatchN, disk(5))
+    regions = regionprops(superpixel, slice_entro)
+    return PatchN, regions, superpixel, slice_colors
+
+
 def SuperpixelExtract(o_img, n_segments, is_data_from_nii = 1):
     if is_data_from_nii == 1:
         o_img[o_img > 200] = 200
@@ -316,7 +328,7 @@ def Fill_holes(img):
     # 注意先后顺序
     rel[rel != 255] = 1
     rel[rel == 255] = 0
-    ShowImage(1, img, im_th, rel)
+    # ShowImage(1, img, im_th, rel)
     return rel
 
 def extract_values_coords(img, value=1):
