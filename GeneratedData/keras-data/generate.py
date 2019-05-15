@@ -58,7 +58,7 @@ def main(seg_path, img_path, n_segments, data_save_path):
 if __name__ == '__main__':
     seg_path = r'H:\LiverData\LITS17\segmentations\*.nii'
     img_path = r'H:\LiverData\LITS17\volumes\*.nii'
-    data_save_path = r'E:\MyProjects-data-model\data\80patients.h5'
+    data_save_path = r'F:\practice\liver\100patients.h5'
     n_segments = 758
     main(seg_path, img_path, n_segments, data_save_path)
 
