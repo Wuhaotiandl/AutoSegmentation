@@ -9,38 +9,41 @@ from model_3cnn_focalloss import focal_loss
 from skimage import morphology, measure
 from skimage.measure import regionprops
 import cv2
+"""
+    直肠的验证模型
+    注意：数据格式是h5格式的文件 
+    事实证明，在超像素预测的时候，h5文件里面存放的是patch，而patch是无法复原回原图的
+    所以这里还是采用原数据，从原数据里面随机抽取50张来做测试
+"""
+def validate(h5_path, data_path, mask_path=None):
+    origin_image = np.load(data_path)
+    origin_mask = np.load(mask_path)
+    origin_mask = origin_mask.reshape(origin_mask.shape[0],  origin_mask.shape[1], origin_mask.shape[2])
+    origin_image = origin_image.reshape(origin_image.shape[0], origin_image.shape[1], origin_image.shape[2])
+    shuffle_array = np.random.randint(0, origin_image.shape[0], 50)
 
-def validate(json_path, h5_path, data_path, mask_path=None):
-    data_nii = np.load(data_path)
-    mask_nii = np.load(mask_path)
-    segment_number = 2000
-    data_nii, mask_nii = ExtractInfo(data_nii, mask_nii)
-    # model = load_model(h5_path, custom_objects={'focal_loss_fixed': focal_loss(gamma=2.0)})
+    origin_image = origin_image[shuffle_array]
+    origin_mask = origin_mask[shuffle_array]
+
+    origin_image, origin_mask = ExtractInfo(origin_image, origin_mask)
     model = load_model(h5_path)
     _sum = 0
-    for i in range(data_nii.shape[0]):
-        # 在原图验证
-        slice_ = data_nii[i, :, :]
-        label_ = mask_nii[i, :, :]
-        cut_slice = cutheart(img=slice_)
-        cut_label = cutheart(img=label_)
+    for i in range(origin_mask.shape[0]):
+        slice_ = origin_image[i, :, :]
+        label_ = origin_mask[i, :, :]
         # ShowImage(2, slice_, label_, cut_slice, cut_label)
-        PatchNorm,  region, superpixel, slice_entro = SuperpixelExtract(cut_slice, segment_number, is_data_from_nii=0)
-        labelvalue, patch_data, patch_coord, count, region_index, patch_liver_index = PatchExtract(region, cut_slice, cut_label)
+        PatchNorm,  region, superpixel, slice_entro = SuperpixelExtract_for_rectum(slice_, 1000)
+        labelvalue, patch_data, patch_coord, count, region_index, patch_liver_index = PatchExtract(region, slice_, label_)
         Patch_test, Label_test = np.array(patch_data), np.array(labelvalue)
         Patch_test = Patch_test.astype(np.float32)
         Patch_test = np.expand_dims(Patch_test, -1)
 
         Label_test = np_utils.to_categorical(Label_test, num_classes=3)
-
-
-        # model.load_weights(r'F:\practice\try\weights-improvement-04-0.77.hdf5')
-        # Evaluate the model with the metrics defined earlier
         loss, accuracy = model.evaluate(Patch_test, Label_test)
         print("loss: %g,training accuracy: %g" % (loss, accuracy))
         prediction = model.predict(Patch_test)
         prediction = np.argmax(prediction, 1)
-        y_shape, x_shape = cut_slice.shape[0], cut_slice.shape[1]
+        y_shape, x_shape = slice_.shape[0], slice_.shape[1]
         whiteboard = np.zeros((y_shape, x_shape))
         whiteboard_region = np.zeros((y_shape, x_shape))
         whiteboard_region_2 = np.zeros((y_shape, x_shape))
@@ -89,27 +92,21 @@ def validate(json_path, h5_path, data_path, mask_path=None):
             # 取contours
             # coords = find_counters_by(last_finish, 1)
             coords = extract_counters(last_finish)
-            draw = draw_coords_img(cut_slice, coords, value=200)
+            draw = draw_coords_img(slice_, coords, value=0.9)
 
-            ShowImage(3, slice_, cut_label, whiteboard_region_2, whiteboard_region,  whiteboard_region_after,
+            ShowImage(3, slice_, label_, whiteboard_region_2, whiteboard_region,  whiteboard_region_after,
                       whiteboard_region_after_remove, FillHolesFinish, blurbinary_rel, last_finish, draw)
-            ShowImage(1, draw)
             # ShowImage(2, slice_, label_, draw)
-            dice = 2 * np.sum(cut_label*last_finish)/(np.sum(last_finish) + np.sum(cut_label))
+            dice = 2 * np.sum(label_*last_finish)/(np.sum(last_finish) + np.sum(label_))
             _sum += dice
             print(dice)
         else:
+            ShowImage(1, slice_, label_)
             print("该行无预测")
-    # print('平均dice系数为：',  str(_sum / data_nii.shape[0]))
+    # print('平均dice系数为：',  str(_sum / origin_image.shape[0]))
     a = 1
 
-# 结果dice 系数有点差异
-# 0.94, 0.87, 0.89, 0.77, 0.85
-# 130：0.7325；125： 0.83
-json_path = r'G:\model-store\heart-model\segliver_model_3cnn_50ecrossentry_2000.json'
-h5_path = r'G:\model-store\heart-model\segliver_model_3cnn_50ecrossentry_2000.h5'
-# json_path = r'H:\Hospital_Data\heart\masks\segliver_model_3cnn_10ecrossentry_2000.json'
-# h5_path = r'H:\Hospital_Data\heart\masks\segliver_model_3cnn_10ecrossentry_2000.h5'
-dcm_path = r'G:\data\heart_data\val_data\YU SHAN SONG\ct_data.npy'
-mask_path = r'G:\data\heart_data\val_data\YU SHAN SONG\Heart.npy'
-validate(json_path, h5_path, dcm_path, mask_path)
+h5_path = r'G:\model-store\rectum-model\segRectum_model_3cnn_10epoch_crossentry.h5'
+dcm_path = r'G:\data\rectum\origin_data\data.npy'
+mask_path = r'G:\data\rectum\origin_data\label.npy'
+validate(h5_path, dcm_path, mask_path)

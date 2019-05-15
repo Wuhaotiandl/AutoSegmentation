@@ -11,7 +11,9 @@ from skimage.measure import regionprops
 import cv2
 import os
 import glob
-
+"""
+    合并测试
+"""
 def validate(dcm_path, mask_path, h5_path):
     segment_number = 700
     dcm_files = np.load(dcm_path)
@@ -78,7 +80,7 @@ def validate(dcm_path, mask_path, h5_path):
             draw = draw_coords_img(cut_file, coords, value=200)
             ShowImage(2, dfile, dcm_masks[dcm_index], cut_file, whiteboard, whiteboard_region, whiteboard_region_after,draw)
 
-dcm_path = r'G:\data\heart_data\masks\CAO WEN FANG\ct_data.npy'
-mask_path = r'G:\data\heart_data\masks\CAO WEN FANG\Heart.npy'
+dcm_path = r'G:\data\heart_data\masks\YU SHAN SONG\ct_data.npy'
+mask_path = r'G:\data\heart_data\masks\YU SHAN SONG\Heart.npy'
 h5_path = r'G:\model-store\heart-model\segliver_model_3cnn_10ecrossentry.h5'
 validate(dcm_path, mask_path, h5_path)
