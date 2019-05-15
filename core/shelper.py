@@ -384,3 +384,18 @@ def find_counters_by(mask, value=1):
                      coords.append([i, j])
     return coords
 
+def extract_shuffle_array(start, end, size, data):
+    """
+        从data里面随机抽取size长度的数据数据
+        -----------------------------------
+        Parameters:
+            start: 开始下标，一般为0
+            end: 结束下表，一般为data.shape[0]
+            size: 提取长度
+            data: 数据，它为np.array矩阵，数据格式为[Number, ] 第一维是number
+        ----------------------------------
+        Returns:
+            返回data里面随机的一批数据
+    """
+    shuffle = np.random.randint(start, end, size)
+    return data[shuffle]
