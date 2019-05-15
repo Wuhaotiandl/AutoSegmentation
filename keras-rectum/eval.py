@@ -104,9 +104,9 @@ def validate(h5_path, data_path, mask_path=None):
             ShowImage(1, slice_, label_)
             print("该行无预测")
     # print('平均dice系数为：',  str(_sum / origin_image.shape[0]))
-    a = 1
 
-h5_path = r'G:\model-store\rectum-model\segRectum_model_3cnn_10epoch_crossentry.h5'
-dcm_path = r'G:\data\rectum\origin_data\data.npy'
-mask_path = r'G:\data\rectum\origin_data\label.npy'
+
+h5_path = r'F:\practice\rectum\segRectum_model_3cnn_20epoch_crossentry.h5'
+dcm_path = r'F:\rectum\data.npy'
+mask_path = r'F:\rectum\label.npy'
 validate(h5_path, dcm_path, mask_path)

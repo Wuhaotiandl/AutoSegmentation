@@ -197,6 +197,73 @@ def PatchExtract(region, imgslice, labelslice):
 #     print('The %d@%d superpixel region patch have done' % (count, total))
     return labelvalue, patch_data, patch_coord, count, region_index, patch_liver_index
 
+def flip90_left(arr):
+    new_arr = np.transpose(arr)
+    new_arr = new_arr[::-1]
+    return new_arr
+
+def PatchExtract_expand(region, imgslice, labelslice):
+    """
+    共用
+    :param region:
+    :param imgslice:
+    :param labelslice:
+    :return:
+    """
+    count = 0
+    img = imgslice
+    total=len(region)
+    labelvalue=[]
+    patch_data = []
+    patch_coord = []
+    patch_liver_index = []
+    region_index = []
+    for r in range(len(region)):
+        if (region[r].mean_intensity)>1.5 and (region[r].max_intensity)>0:
+            ymin=int(region[r].centroid[0]) - 16
+            ymax=int(region[r].centroid[0]) + 16
+            xmin=int(region[r].centroid[1]) - 16
+            xmax=int(region[r].centroid[1]) + 16
+            if ymin >= 0 and xmin >= 0 and ymax < img.shape[0] and xmax < img.shape[1]:
+                flaglabel=(labelslice[ymin:ymax, xmin:xmax] == 1).sum()/labelslice[ymin:ymax, xmin:xmax].size
+                if flaglabel == 1:
+                    label = 1
+                    patch_liver_index.append(r)
+                elif flaglabel>=0.5 and flaglabel<1:
+                    label = 2
+                    patch_liver_index.append(r)
+                    rot1 = flip90_left(img[ymin: ymax, xmin: xmax])
+                    patch_data.append(DataNormalize(rot1))
+                    count += 1
+                    labelvalue.append(label)
+                    rot2 = flip90_left(rot1)
+                    patch_data.append(DataNormalize(rot2))
+                    count += 1
+                    labelvalue.append(label)
+                    rot3 = flip90_left(rot2)
+                    patch_data.append(DataNormalize(rot3))
+                    count += 1
+                    labelvalue.append(label)
+                    rot4 = flip90_left(rot3)
+                    patch_data.append(DataNormalize(rot4))
+                    count += 1
+                    labelvalue.append(label)
+                else:
+                    label = 0
+                # 存放单个patch [32, 32]
+                pa = img[ymin: ymax, xmin: xmax]
+                # [1, 32, 32]
+                # pa = np.expand_dims(pa, 0)
+                patch_data.append(DataNormalize(pa))
+                # 存放边界位置
+                patch_coord.append([ymin,ymax,xmin,xmax])
+                count += 1
+                # 存放对应的标签
+                labelvalue.append(label)
+                region_index.append(r)
+#     print('The %d@%d superpixel region patch have done' % (count, total))
+    return labelvalue, patch_data, patch_coord, count, region_index, patch_liver_index
+
 def ShowImage(rows=1, *args):
     """
         show the image by plt.

@@ -26,8 +26,8 @@ def main(seg_path, img_path, n_segments, data_save_path):
         # 判断当前的数据是否有肝脏数据，如果有则加入，没有则剔除
         imgs, labels = ExtractInfo(imgs, labels)
         for j in range(imgs.shape[0]):
-            cut_img = imgs[j, :, :][90:300, 50:300]
-            cut_label = labels[j, :, :][90:300, 50:300]
+            cut_img = imgs[j, :, :][91: 282, 50:307]
+            cut_label = labels[j, :, :][91: 282, 50:307]
             PatchN, regions, superpixel, slice_colors = SuperpixelExtract(cut_img, n_segments)
             labelvalue, patch_data, patch_coord, count,  region_index, patch_liver_index = PatchExtract(regions, cut_img, cut_label)
             print("handle: " + str(j))
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     seg_path = r'H:\LiverData\LITS17\segmentations\*.nii'
     img_path = r'H:\LiverData\LITS17\volumes\*.nii'
     data_save_path = r'E:\MyProjects-data-model\data\80patients.h5'
-    n_segments = 810
+    n_segments = 758
     main(seg_path, img_path, n_segments, data_save_path)
 
 

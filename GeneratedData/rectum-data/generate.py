@@ -27,7 +27,7 @@ def main(seg_path, img_path, n_segments, train_path, val_path):
         single_mask = origin_mask[i]
         # shape 为 [128, 128]
         PatchN, regions, superpixel, slice_colors = SuperpixelExtract_for_rectum(single_img, n_segments)
-        labelvalue, patch_data, patch_coord, count,  region_index, patch_liver_index = PatchExtract(regions, single_img, single_mask)
+        labelvalue, patch_data, patch_coord, count,  region_index, patch_liver_index = PatchExtract_expand(regions, single_img, single_mask)
         print("handle: " + str(i))
         if len(patch_data) > 0:
             patch_data = np.stack(([_slice for _slice in patch_data]), axis=0)
@@ -61,12 +61,16 @@ def main(seg_path, img_path, n_segments, train_path, val_path):
         print("Finish Store val data")
 
 
+
+
 if __name__ == '__main__':
-    seg_path = r'G:\data\rectum\origin_data\label.npy'
-    img_path = r'G:\data\rectum\origin_data\data.npy'
-    train_data_save_path = r'G:\data\rectum\train_data\train_rectum.h5'
-    val_data_save_path = r'G:\data\rectum\val_data\val_rectum.h5'
+    seg_path = r'F:\rectum\label.npy'
+    img_path = r'F:\rectum\data.npy'
+    train_data_save_path = r'F:\practice\rectum\train_rectum.h5'
+    val_data_save_path = r'F:\practice\rectum\val_rectum.h5'
     n_segments = 1000
     main(seg_path, img_path, n_segments, train_data_save_path, val_data_save_path)
+
+
 
 
