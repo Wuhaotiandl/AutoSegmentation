@@ -92,7 +92,7 @@ def validate(h5_path, data_path, mask_path=None):
             # 取contours
             # coords = find_counters_by(last_finish, 1)
             coords = extract_counters(last_finish)
-            draw = draw_coords_img(slice_, coords, value=200)
+            draw = draw_coords_img(slice_, coords, value=0.9)
 
             ShowImage(3, slice_, label_, whiteboard_region_2, whiteboard_region,  whiteboard_region_after,
                       whiteboard_region_after_remove, FillHolesFinish, blurbinary_rel, last_finish, draw)
@@ -101,8 +101,9 @@ def validate(h5_path, data_path, mask_path=None):
             _sum += dice
             print(dice)
         else:
+            ShowImage(1, slice_, label_)
             print("该行无预测")
-    # print('平均dice系数为：',  str(_sum / data_nii.shape[0]))
+    # print('平均dice系数为：',  str(_sum / origin_image.shape[0]))
     a = 1
 
 h5_path = r'G:\model-store\rectum-model\segRectum_model_3cnn_10epoch_crossentry.h5'
