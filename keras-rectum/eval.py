@@ -96,7 +96,7 @@ def validate(h5_path, data_path, mask_path=None):
 
             ShowImage(3, slice_, label_, whiteboard_region_2, whiteboard_region,  whiteboard_region_after,
                       whiteboard_region_after_remove, FillHolesFinish, blurbinary_rel, last_finish, draw)
-            # ShowImage(2, slice_, label_, draw)
+            ShowImage(2, slice_, label_, draw)
             dice = 2 * np.sum(label_*last_finish)/(np.sum(last_finish) + np.sum(label_))
             _sum += dice
             print(dice)
@@ -106,7 +106,7 @@ def validate(h5_path, data_path, mask_path=None):
     # print('平均dice系数为：',  str(_sum / origin_image.shape[0]))
     a = 1
 
-h5_path = r'G:\model-store\rectum-model\segRectum_model_3cnn_10epoch_crossentry.h5'
+h5_path = r'C:\Users\formy\Documents\Tencent Files\859370476\FileRecv\segRectum_model_3cnn_20epoch_crossentry.h5'
 dcm_path = r'G:\data\rectum\origin_data\data.npy'
 mask_path = r'G:\data\rectum\origin_data\label.npy'
 validate(h5_path, dcm_path, mask_path)

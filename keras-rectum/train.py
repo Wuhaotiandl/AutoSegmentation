@@ -30,6 +30,7 @@ def train(data_path, model_save_path, model_json_save_path):
         train_label = np_utils.to_categorical(train_label, num_classes=3)
         start_time = time.time()
         model.fit(train_img, train_label, validation_split=0.3, epochs=10, batch_size=64, shuffle=True)
+
         end_time = time.time()
         print("耗时：", str(end_time - start_time))
         model.save(model_save_path)

@@ -5,7 +5,9 @@ import numpy as np
 import tensorflow as tf
 import time
 import gc
-
+"""
+    对于Python内存机制的初步认识
+"""
 def sty_memory(data_path):
     # 读取文件并不耗费多少内存 为119M
     with h5py.File(data_path) as f:
