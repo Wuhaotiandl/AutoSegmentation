@@ -21,9 +21,13 @@ def validate(json_path, h5_path, data_path, mask_path=None):
     for i in range(data_nii.shape[0]):
         # 在原图验证
         slice_ = data_nii[i, :, :]
+        myslice = slice_.copy()
         label_ = mask_nii[i, :, :]
-        cut_slice = cutheart(img=slice_)
-        cut_label = cutheart(img=label_)
+        # 寻找身体中心来定位
+        # cut_slice = cutheart(img=slice_)
+        # cut_label = cutheart(img=label_)
+        cut_slice = slice_
+        cut_label = label_
         # ShowImage(2, slice_, label_, cut_slice, cut_label)
         PatchNorm,  region, superpixel, slice_entro = SuperpixelExtract(cut_slice, segment_number, is_data_from_nii=0)
         labelvalue, patch_data, patch_coord, count, region_index, patch_liver_index = PatchExtract(region, cut_slice, cut_label)
@@ -62,42 +66,48 @@ def validate(json_path, h5_path, data_path, mask_path=None):
             temp_region = region[lindex3]
             for value in temp_region.coords:
                 whiteboard_region_2[value[0], value[1]] = 1
-        # 膨胀腐蚀
-        whiteboard_region_after = morphology.dilation(whiteboard_region, morphology.disk(5))
-        whiteboard_region_after = morphology.erosion(whiteboard_region_after, morphology.disk(5))
-        whiteboard_region_after_remove = measure.label(whiteboard_region_after, connectivity=2)
+            # 膨胀腐蚀
+            # TODO Step1 填补内部空洞，防止腐蚀造成原本连续的断裂
+        first_fill = Fill_holes(whiteboard_region)
+        # TODO Step2 腐蚀，因预测出来的心脏模型是纺锤型，期望蚀断头尾突出部
+        whiteboard_region_erosion = morphology.erosion(first_fill, morphology.disk(6))
+
+        # TODO Step3 预测结果会有多处联通区域，希望能找到最接近于心脏中心点的一块
+        whiteboard_region_after_remove = measure.label(whiteboard_region_erosion, connectivity=1)
         afterregions = regionprops(whiteboard_region_after_remove)
 
-        validate_area = []
+        # 去除非中心区域的联通区域
+        validate_area = wipe_out_uncenter(afterregions, 512, 512)
 
-        for i in range(len(afterregions)):
-            validate_area.append(afterregions[i].area)
+        # for i in range(len(afterregions)):
+        #     validate_area.append(afterregions[i].area)
         if len(validate_area) > 0:
-            # 去除外围最小联通区域
-            whiteboard_region_after_remove[whiteboard_region_after_remove != validate_area.index(max(validate_area)) + 1] = 0
-            whiteboard_region_after_remove[whiteboard_region_after_remove == validate_area.index(max(validate_area)) + 1] = 1
-            # 泛洪算法fill hole
-            FillHolesFinish = Fill_holes(whiteboard_region_after_remove)
+            maxlabel = max_label(validate_area)
+            whiteboard_region_after_remove[whiteboard_region_after_remove != maxlabel] = 0
+            whiteboard_region_after_remove[whiteboard_region_after_remove == maxlabel] = 1
+            whiteboard_region_after_dilation = morphology.dilation(whiteboard_region_after_remove,
+                                                                   morphology.disk(6))
 
             # 二值边界平滑处理
-            blurbinary_rel = FillHolesFinish.copy()
+            blurbinary_rel = whiteboard_region_after_dilation.copy()
             for tag in range(10):
                 blurbinary_rel = morphology.dilation(blurbinary_rel, morphology.disk(3))
                 blurbinary_rel = morphology.erosion(blurbinary_rel, morphology.disk(2))
             last_finish = morphology.erosion(blurbinary_rel, morphology.disk(4))
             last_finish = morphology.erosion(last_finish, morphology.disk(3))
             # 取contours
-            # coords = find_counters_by(last_finish, 1)
             coords = extract_counters(last_finish)
             draw = draw_coords_img(cut_slice, coords, value=200)
+            #
+            ShowImage(3, slice_, whiteboard_region, first_fill, whiteboard_region_erosion,
+                      whiteboard_region_after_remove, whiteboard_region_after_dilation,
+                      blurbinary_rel, last_finish, draw)
 
-            ShowImage(3, slice_, cut_label, whiteboard_region_2, whiteboard_region,  whiteboard_region_after,
-                      whiteboard_region_after_remove, FillHolesFinish, blurbinary_rel, last_finish, draw)
             ShowImage(1, draw)
             # ShowImage(2, slice_, label_, draw)
-            dice = 2 * np.sum(cut_label*last_finish)/(np.sum(last_finish) + np.sum(cut_label))
-            _sum += dice
-            print(dice)
+            # dice = 2 * np.sum(cut_label*last_finish)/(np.sum(last_finish) + np.sum(cut_label))
+            # _sum += dice
+            # print(dice)
         else:
             print("该行无预测")
     # print('平均dice系数为：',  str(_sum / data_nii.shape[0]))
@@ -110,6 +120,6 @@ json_path = r'G:\model-store\heart-model\segliver_model_3cnn_50ecrossentry_2000.
 h5_path = r'G:\model-store\heart-model\segliver_model_3cnn_50ecrossentry_2000.h5'
 # json_path = r'H:\Hospital_Data\heart\masks\segliver_model_3cnn_10ecrossentry_2000.json'
 # h5_path = r'H:\Hospital_Data\heart\masks\segliver_model_3cnn_10ecrossentry_2000.h5'
-dcm_path = r'G:\data\heart_data\val_data\YU SHAN SONG\ct_data.npy'
-mask_path = r'G:\data\heart_data\val_data\YU SHAN SONG\Heart.npy'
+dcm_path = r'G:\data\heart_data\val_data\ZHENG XIANG YUN\ct_data.npy'
+mask_path = r'G:\data\heart_data\val_data\ZHENG XIANG YUN\Heart.npy'
 validate(json_path, h5_path, dcm_path, mask_path)
